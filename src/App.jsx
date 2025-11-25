@@ -58,8 +58,11 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [autoPlaying, setAutoPlaying] = useState(false);
   const [currentKey, setCurrentKey] = useState(null);
+  const [legendVisible, setLegendVisible] = useState(true);
   const playKeyRef = useRef(null);
   const autoIntervalRef = useRef(null);
+  const legendTimeoutRef = useRef(null);
+  const paletteColors = useMemo(() => Array.from(new Set(Object.values(keyData).map((entry) => entry.color))), [keyData]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,6 +75,12 @@ function App() {
       canvas.width = canvas.clientWidth;
       canvas.height = canvas.clientHeight;
       paper.view.viewSize = new paper.Size(canvas.clientWidth, canvas.clientHeight);
+    };
+
+    const registerInteraction = () => {
+      setLegendVisible(true);
+      if (legendTimeoutRef.current) clearTimeout(legendTimeoutRef.current);
+      legendTimeoutRef.current = setTimeout(() => setLegendVisible(false), 5200);
     };
 
     const playKey = (letter) => {
@@ -98,6 +107,7 @@ function App() {
       data.sound.play();
       circles.push(circle);
       setCurrentKey(letter.toUpperCase());
+      registerInteraction();
     };
 
     playKeyRef.current = playKey;
@@ -129,14 +139,15 @@ function App() {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('resize', resizeCanvas);
 
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('resize', resizeCanvas);
-      paper.view.onFrame = null;
-      circles.forEach((circle) => circle.remove());
-      playKeyRef.current = null;
-      paper.project.clear();
-    };
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('resize', resizeCanvas);
+        paper.view.onFrame = null;
+        circles.forEach((circle) => circle.remove());
+        playKeyRef.current = null;
+        paper.project.clear();
+        if (legendTimeoutRef.current) clearTimeout(legendTimeoutRef.current);
+      };
   }, [keyData]);
 
   const holidayActive = isHolidaySeason();
@@ -171,7 +182,7 @@ function App() {
       <div className="top-bar">
         <button
           type="button"
-          className={`hamburger ${menuOpen ? 'is-open' : ''}`}
+          className={`hamburger ripple ${menuOpen ? 'is-open' : ''}`}
           onClick={() => setMenuOpen((prev) => !prev)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
         >
@@ -200,6 +211,7 @@ function App() {
           </button>
         </nav>
       </aside>
+      {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
 
       <div className="overlay">
         <h1 className="title">
@@ -209,14 +221,27 @@ function App() {
             </span>
           ))}
         </h1>
-        <p>Press any letter key to create sound and color.</p>
+        <p className="hero-sub">
+          Press any letter key to create sound and color
+          <span className="caret" />
+        </p>
 
-        {currentKey && (
-          <div className="now-playing">
-            <span className="label">Now playing</span>
-            <span className="letter">{currentKey}</span>
+        <div className="hud">
+          <div className="chip glassy">
+            <span className="chip-label">Auto play</span>
+            <span className={`pill ${autoPlaying ? 'on' : 'off'}`}>{autoPlaying ? 'On' : 'Off'}</span>
           </div>
-        )}
+          {currentKey && (
+            <div className="chip glassy">
+              <span className="chip-label">Now playing</span>
+              <span className="pill loud">{currentKey}</span>
+            </div>
+          )}
+          <div className="chip glassy">
+            <span className="chip-label">Volume</span>
+            <span className="pill">100%</span>
+          </div>
+        </div>
 
         <div className="helper">
           <div className="helper-header">Try these</div>
@@ -245,14 +270,26 @@ function App() {
             <p className="auto-card__copy">Let it snow! Auto-play a festive sequence of sounds and circles.</p>
             <button
               type="button"
-              className={`auto-btn ${autoPlaying ? 'stop' : 'start'}`}
+              className={`auto-btn ripple ${autoPlaying ? 'stop' : 'start'}`}
               onClick={() => setAutoPlaying((prev) => !prev)}
             >
               {autoPlaying ? 'Stop Auto Play' : 'Start Auto Play'}
             </button>
           </div>
         )}
+
+        {legendVisible && (
+          <div className="palette-ribbon">
+            {paletteColors.map((color, idx) => (
+              <span key={color + idx} className="swatch" style={{ backgroundColor: color }} />
+            ))}
+          </div>
+        )}
       </div>
+
+      <footer className="footer">
+        <div className={`progress ${autoPlaying ? 'animate' : ''}`} />
+      </footer>
     </div>
   );
 }
