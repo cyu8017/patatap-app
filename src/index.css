@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Archivo:wght@600&display=swap');
+
 :root {
   color-scheme: dark;
 }
@@ -11,7 +13,7 @@ body {
   min-height: 100vh;
   background: #000;
   color: #fff;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
 }
 
 #root {
@@ -47,11 +49,26 @@ canvas {
 
 .overlay h1 {
   margin: 0;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  font-family: 'Archivo', 'Space Grotesk', sans-serif;
+  text-transform: uppercase;
+}
+
+.title {
+  display: flex;
+  gap: 12px;
+  font-size: clamp(32px, 6vw, 72px);
+  line-height: 1;
+  font-weight: 600;
+}
+
+.title span {
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
 }
 
 .overlay p {
   margin: 0;
   color: #dcdcdc;
   font-size: 18px;
+  letter-spacing: 0.5px;
 }

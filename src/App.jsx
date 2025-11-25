@@ -31,6 +31,9 @@ const createKeyData = () => ({
   m: { sound: new Howl({ src: ['/sounds/moon.mp3'] }), color: '#2c3e50' },
 });
 
+const titleLetters = ['P', 'A', 'T', 'A', 'T', 'A', 'P'];
+const titleColors = ['#1abc9c', '#e74c3c', '#f1c40f', '#9b59b6', '#3498db', '#e67e22', '#2ecc71'];
+
 function App() {
   const canvasRef = useRef(null);
   const keyData = useMemo(() => createKeyData(), []);
@@ -92,7 +95,13 @@ function App() {
     <div className="app">
       <canvas ref={canvasRef} id="myCanvas" />
       <div className="overlay">
-        <h1>Welcome to Patatap!</h1>
+        <h1 className="title">
+          {titleLetters.map((letter, index) => (
+            <span key={`${letter}-${index}`} style={{ color: titleColors[index % titleColors.length] }}>
+              {letter}
+            </span>
+          ))}
+        </h1>
         <p>Press letter keys to start playing</p>
       </div>
     </div>
