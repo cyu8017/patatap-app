@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:pages": "vite build && rsync -av --delete dist/ docs/",
     "preview": "vite preview"
   },
   "dependencies": {
