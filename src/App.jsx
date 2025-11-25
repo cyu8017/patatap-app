@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Howl } from 'howler';
 import paper from 'paper';
 
@@ -33,10 +33,21 @@ const createKeyData = () => ({
 
 const titleLetters = ['P', 'A', 'T', 'A', 'T', 'A', 'P'];
 const titleColors = ['#1abc9c', '#e74c3c', '#f1c40f', '#9b59b6', '#3498db', '#e67e22', '#2ecc71'];
+const featuredKeys = ['Q', 'W', 'E', 'R', 'A', 'S', 'D', 'F', 'Z', 'X', 'C', 'V'];
+const holidayKeys = ['q', 'w', 'e', 'r', 't', 'y', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v'];
+
+const isHolidaySeason = () => {
+  const now = new Date();
+  return now.getMonth() === 11 && now.getDate() >= 1;
+};
 
 function App() {
   const canvasRef = useRef(null);
   const keyData = useMemo(() => createKeyData(), []);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [autoPlaying, setAutoPlaying] = useState(false);
+  const playKeyRef = useRef(null);
+  const autoIntervalRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,8 +62,8 @@ function App() {
       paper.view.viewSize = new paper.Size(canvas.clientWidth, canvas.clientHeight);
     };
 
-    const handleKeyDown = (event) => {
-      const data = keyData[event.key.toLowerCase()];
+    const playKey = (letter) => {
+      const data = keyData[letter.toLowerCase()];
       if (!data) return;
 
       const maxPoint = new paper.Point(paper.view.size.width, paper.view.size.height);
@@ -61,6 +72,12 @@ function App() {
       circle.fillColor = data.color;
       data.sound.play();
       circles.push(circle);
+    };
+
+    playKeyRef.current = playKey;
+
+    const handleKeyDown = (event) => {
+      playKey(event.key);
     };
 
     const onFrame = () => {
@@ -87,13 +104,73 @@ function App() {
       window.removeEventListener('resize', resizeCanvas);
       paper.view.onFrame = null;
       circles.forEach((circle) => circle.remove());
+      playKeyRef.current = null;
       paper.project.clear();
     };
   }, [keyData]);
 
+  const holidayActive = isHolidaySeason();
+
+  useEffect(() => {
+    if (!holidayActive && autoPlaying) {
+      setAutoPlaying(false);
+    }
+  }, [holidayActive, autoPlaying]);
+
+  useEffect(() => {
+    if (!autoPlaying) return undefined;
+    if (!playKeyRef.current) return undefined;
+
+    const playRandom = () => {
+      const letter = holidayKeys[Math.floor(Math.random() * holidayKeys.length)];
+      playKeyRef.current?.(letter);
+    };
+
+    playRandom();
+    autoIntervalRef.current = setInterval(playRandom, 420);
+
+    return () => {
+      clearInterval(autoIntervalRef.current);
+      autoIntervalRef.current = null;
+    };
+  }, [autoPlaying]);
+
   return (
     <div className="app">
       <canvas ref={canvasRef} id="myCanvas" />
+      <div className="top-bar">
+        <button
+          type="button"
+          className={`hamburger ${menuOpen ? 'is-open' : ''}`}
+          onClick={() => setMenuOpen((prev) => !prev)}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
+
+      <aside className={`drawer ${menuOpen ? 'open' : ''}`} aria-hidden={!menuOpen}>
+        <div className="drawer-header">
+          <span className="drawer-title">Menu</span>
+          <button type="button" className="close-btn" onClick={() => setMenuOpen(false)} aria-label="Close menu">
+            ✕
+          </button>
+        </div>
+        <nav className="drawer-nav">
+          <button type="button" className="drawer-link" onClick={() => setMenuOpen(false)}>
+            Instructions
+          </button>
+          <button type="button" className="drawer-link" onClick={() => setMenuOpen(false)}>
+            Sounds
+          </button>
+          <button type="button" className="drawer-link" onClick={() => setMenuOpen(false)}>
+            About
+          </button>
+        </nav>
+      </aside>
+
       <div className="overlay">
         <h1 className="title">
           {titleLetters.map((letter, index) => (
@@ -102,7 +179,42 @@ function App() {
             </span>
           ))}
         </h1>
-        <p>Press letter keys to start playing</p>
+        <p>Press any letter key to create sound and color.</p>
+
+        <div className="helper">
+          <div className="helper-header">Try these</div>
+          <div className="key-grid">
+            {featuredKeys.map((letter) => {
+              const data = keyData[letter.toLowerCase()];
+              return (
+                <div key={letter} className="key-pill">
+                  <span className="dot" style={{ backgroundColor: data?.color }} />
+                  <span className="label">{letter}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="hint">Hold a key to layer sounds and visuals.</div>
+        </div>
+
+        {holidayActive && (
+          <div className="auto-card">
+            <div className="auto-card__header">
+              <span className="auto-card__title">Auto Patatap · Christmas</span>
+              <span className={`auto-card__status ${autoPlaying ? 'on' : 'off'}`}>
+                {autoPlaying ? 'Playing' : 'Idle'}
+              </span>
+            </div>
+            <p className="auto-card__copy">Let it snow! Auto-play a festive sequence of sounds and circles.</p>
+            <button
+              type="button"
+              className={`auto-btn ${autoPlaying ? 'stop' : 'start'}`}
+              onClick={() => setAutoPlaying((prev) => !prev)}
+            >
+              {autoPlaying ? 'Stop Auto Play' : 'Start Auto Play'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
