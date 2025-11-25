@@ -3,35 +3,49 @@ import { Howl } from 'howler';
 import paper from 'paper';
 
 const createKeyData = () => {
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
-  const soundPath = (file) => `${baseUrl}/sounds/${file}`;
+  const soundPath = (file) => `${origin}${baseUrl}/sounds/${file}`;
+  const withSound = (file, color) => ({
+    sound: new Howl({
+      src: [soundPath(file)],
+      html5: true,
+      onloaderror: (id, err) => {
+        // Log to help debug missing sound files in production.
+        // eslint-disable-next-line no-console
+        console.error('Sound load error', file, err);
+      },
+    }),
+    color,
+  });
+
   const base = {
-    q: { sound: new Howl({ src: [soundPath('bubbles.mp3')], html5: true }), color: '#1abc9c' },
-    w: { sound: new Howl({ src: [soundPath('clay.mp3')], html5: true }), color: '#2ecc71' },
-    e: { sound: new Howl({ src: [soundPath('confetti.mp3')], html5: true }), color: '#3498db' },
-    r: { sound: new Howl({ src: [soundPath('corona.mp3')], html5: true }), color: '#9b59b6' },
-    t: { sound: new Howl({ src: [soundPath('dotted-spiral.mp3')], html5: true }), color: '#34495e' },
-    y: { sound: new Howl({ src: [soundPath('flash-1.mp3')], html5: true }), color: '#16a085' },
-    u: { sound: new Howl({ src: [soundPath('flash-2.mp3')], html5: true }), color: '#27ae60' },
-    i: { sound: new Howl({ src: [soundPath('flash-3.mp3')], html5: true }), color: '#2980b9' },
-    o: { sound: new Howl({ src: [soundPath('glimmer.mp3')], html5: true }), color: '#8e44ad' },
-    p: { sound: new Howl({ src: [soundPath('moon.mp3')], html5: true }), color: '#2c3e50' },
-    a: { sound: new Howl({ src: [soundPath('pinwheel.mp3')], html5: true }), color: '#f1c40f' },
-    s: { sound: new Howl({ src: [soundPath('piston-1.mp3')], html5: true }), color: '#e67e22' },
-    d: { sound: new Howl({ src: [soundPath('piston-2.mp3')], html5: true }), color: '#e74c3c' },
-    f: { sound: new Howl({ src: [soundPath('prism-1.mp3')], html5: true }), color: '#95a5a6' },
-    g: { sound: new Howl({ src: [soundPath('prism-2.mp3')], html5: true }), color: '#f39c12' },
-    h: { sound: new Howl({ src: [soundPath('prism-3.mp3')], html5: true }), color: '#d35400' },
-    j: { sound: new Howl({ src: [soundPath('splits.mp3')], html5: true }), color: '#1abc9c' },
-    k: { sound: new Howl({ src: [soundPath('squiggle.mp3')], html5: true }), color: '#2ecc71' },
-    l: { sound: new Howl({ src: [soundPath('strike.mp3')], html5: true }), color: '#3498db' },
-    z: { sound: new Howl({ src: [soundPath('suspension.mp3')], html5: true }), color: '#9b59b6' },
-    x: { sound: new Howl({ src: [soundPath('timer.mp3')], html5: true }), color: '#34495e' },
-    c: { sound: new Howl({ src: [soundPath('ufo.mp3')], html5: true }), color: '#16a085' },
-    v: { sound: new Howl({ src: [soundPath('veil.mp3')], html5: true }), color: '#27ae60' },
-    b: { sound: new Howl({ src: [soundPath('wipe.mp3')], html5: true }), color: '#2980b9' },
-    n: { sound: new Howl({ src: [soundPath('zig-zag.mp3')], html5: true }), color: '#8e44ad' },
-    m: { sound: new Howl({ src: [soundPath('moon.mp3')], html5: true }), color: '#2c3e50' },
+    q: withSound('bubbles.mp3', '#1abc9c'),
+    w: withSound('clay.mp3', '#2ecc71'),
+    e: withSound('confetti.mp3', '#3498db'),
+    r: withSound('corona.mp3', '#9b59b6'),
+    t: withSound('dotted-spiral.mp3', '#34495e'),
+    y: withSound('flash-1.mp3', '#16a085'),
+    u: withSound('flash-2.mp3', '#27ae60'),
+    i: withSound('flash-3.mp3', '#2980b9'),
+    o: withSound('glimmer.mp3', '#8e44ad'),
+    p: withSound('moon.mp3', '#2c3e50'),
+    a: withSound('pinwheel.mp3', '#f1c40f'),
+    s: withSound('piston-1.mp3', '#e67e22'),
+    d: withSound('piston-2.mp3', '#e74c3c'),
+    f: withSound('prism-1.mp3', '#95a5a6'),
+    g: withSound('prism-2.mp3', '#f39c12'),
+    h: withSound('prism-3.mp3', '#d35400'),
+    j: withSound('splits.mp3', '#1abc9c'),
+    k: withSound('squiggle.mp3', '#2ecc71'),
+    l: withSound('strike.mp3', '#3498db'),
+    z: withSound('suspension.mp3', '#9b59b6'),
+    x: withSound('timer.mp3', '#34495e'),
+    c: withSound('ufo.mp3', '#16a085'),
+    v: withSound('veil.mp3', '#27ae60'),
+    b: withSound('wipe.mp3', '#2980b9'),
+    n: withSound('zig-zag.mp3', '#8e44ad'),
+    m: withSound('moon.mp3', '#2c3e50'),
   };
 
   // Guarantee every alphabet letter maps to a sound/color (even if base changes).
